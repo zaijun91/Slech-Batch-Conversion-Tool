@@ -1,0 +1,108 @@
+<Window x:Class="MhtToPdfConverter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MhtToPdfConverter"
+        xmlns:converters="clr-namespace:MhtToPdfConverter.Converters"
+        mc:Ignorable="d"
+        Title="MHT to PDF Converter" Height="600" Width="800">
+    <!-- Define Converters namespace above -->
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- File List -->
+            <RowDefinition Height="Auto"/> <!-- Progress Bar & Status -->
+            <RowDefinition Height="Auto"/> <!-- Error List Expander -->
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="添加文件" Command="{Binding AddFilesCommand}" Margin="0,0,5,0" Padding="5"/>
+            <Button Content="添加文件夹" Command="{Binding AddFolderCommand}" Margin="0,0,5,0" Padding="5"/> <!-- Added Add Folder -->
+            <Button Content="选择输出路径" Command="{Binding SelectOutputCommand}" Margin="0,0,5,0" Padding="5"/>
+            <ToggleButton Content="自动覆盖" IsChecked="{Binding Overwrite}" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <!-- Keep the buttons with IsEnabled binding -->
+            <Button Content="开始转换" Command="{Binding ConvertCommand}" FontWeight="Bold" Margin="20,0,0,0" Padding="10,5" IsEnabled="{Binding IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Corrected IsEnabled binding -->
+            <Button Content="清空列表" Command="{Binding ClearListCommand}" Margin="10,0,0,0" Padding="5" IsEnabled="{Binding IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Corrected IsEnabled binding -->
+        </StackPanel>
+
+        <!-- File List DataGrid -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding FileList}" AutoGenerateColumns="False" Margin="0,0,0,10" Name="FileDataGrid"
+                  CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                  AllowDrop="True" Drop="FileDataGrid_Drop"
+                  EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True"
+                  AlternatingRowBackground="#F0F0F0"> <!-- Added AlternatingRowBackground -->
+            <!-- Define Drop handler above -->
+            <!-- Enable Virtualization above -->
+            <!-- Resources moved to App.xaml -->
+            <DataGrid.Columns>
+                <!-- Removed Source File Column -->
+
+                <!-- Output File Name (Editable Template) -->
+                <DataGridTemplateColumn Header="输出文件名 (不含扩展名)" Width="3*"> <!-- Increased width -->
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding SourcePath}"> <!-- Moved ToolTip here -->
+                                <!-- Display Mode -->
+                                <TextBlock Text="{Binding OutputFileName}"
+                                           VerticalAlignment="Center" Margin="4 0"
+                                           Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Uses global resource -->
+
+                                <!-- Edit Mode -->
+                                <TextBox Text="{Binding OutputFileName, UpdateSourceTrigger=PropertyChanged}"
+                                         VerticalAlignment="Center" MinWidth="150" Margin="4 0"
+                                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/> <!-- Uses global resource -->
+
+                                <!-- Edit Button -->
+                                <Button Content="✏️" ToolTip="修改名称"
+                                        Command="{Binding DataContext.EditFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource GridIconButtonStyle}"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+
+                                <!-- Save Button -->
+                                <Button Content="💾" ToolTip="保存名称"
+                                        Command="{Binding DataContext.SaveFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource GridIconButtonStyle}"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                 <!-- Status Column -->
+                 <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="1*" IsReadOnly="True"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Progress Bar & Status -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <ProgressBar Value="{Binding Progress}" Height="20" Margin="0,0,0,5"/>
+            <TextBlock Text="{Binding CurrentStatus}" TextTrimming="CharacterEllipsis"/> <!-- Changed from CurrentFile -->
+        </StackPanel>
+
+        <!-- Error List Expander -->
+        <Expander Grid.Row="3" Header="{Binding ErrorListHeader, FallbackValue='错误列表 (0)'}" IsExpanded="False">
+            <DataGrid ItemsSource="{Binding ErrorList}" AutoGenerateColumns="False" MaxHeight="150" CanUserAddRows="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="文件" Binding="{Binding FilePath}" Width="*" SortDirection="Ascending"/>
+                    <DataGridTextColumn Header="错误原因" Binding="{Binding ErrorMessage}" Width="2*"/>
+                    <DataGridTemplateColumn Header="操作" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="重试"
+                                        Command="{Binding DataContext.RetryCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" Padding="3" Margin="2"
+                                        IsEnabled="{Binding DataContext.IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Expander>
+
+    </Grid>
+</Window>

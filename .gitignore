@@ -1,0 +1,93 @@
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio cache files
+.vs/
+*.csproj.vspscc
+*.vssscc
+.DS_Store
+
+# Rider files
+.idea/
+*.sln.iml
+
+# Packaging files (exclude output and potentially large runtime)
+Packaging/Output/
+Packaging/Resources/WebView2Runtime.exe
+
+# Tooling
+*.dbmdl
+*.jfm
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+*.nunit
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Excel files
+*.xlsx
+*.xltx
+*.xlsm
+*.xltm
+*.xlsb
+*.xlam
+
+# Powerpoint files
+*.pptx
+*.pptm
+*.potx
+*.potm
+*.ppam
+*.ppsx
+*.ppsm
+*.sldx
+*.sldm
+
+# Word files
+*.docx
+*.docm
+*.dotx
+*.dotm
+
+# FAKE - F# Make
+.fake/
+
+# Paket dependency manager
+.paket/paket.lock
+paket-files/
+
+# FSharp Interactive
+fsi.exe.config
+
+# VS Code files
+.vscode/
