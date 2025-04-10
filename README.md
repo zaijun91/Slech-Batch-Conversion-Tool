@@ -1,6 +1,6 @@
-# MHT to PDF Converter (Slech-Batch-Conversion-Tool)
+# MHT 到 PDF 转换器 (Slech 批量转换工具)
 
-A Windows desktop application built with WPF and .NET 8 to batch convert MHT/MHTML files to PDF format, preserving layout, images, styles, and links using the Microsoft Edge WebView2 runtime.
+一个使用 WPF 和 .NET 8 构建的 Windows 桌面应用程序，用于批量将 MHT/MHTML 文件转换为 PDF 格式。转换过程利用 Microsoft Edge WebView2 运行时来保留原始布局、图片、样式和链接。
 
 ## Features
 
@@ -36,3 +36,9 @@ A Windows desktop application built with WPF and .NET 8 to batch convert MHT/MHT
 ## Usage
 
 Run the `MhtToPdfConverter.exe` or install using the generated setup file. Use the GUI to add files/folders, select an output directory, and start the conversion.
+
+## 联系方式 (Contact)
+
+如有问题或建议，可以通过以下方式联系作者：
+
+![微信二维码](docs/images/wechat_qr.png)
