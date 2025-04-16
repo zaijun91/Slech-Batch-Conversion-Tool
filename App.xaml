@@ -14,13 +14,225 @@
              <Setter Property="Margin" Value="2 0"/>
              <Setter Property="Cursor" Value="Hand"/>
              <Setter Property="VerticalAlignment" Value="Center"/>
-             <Setter Property="FontSize" Value="14"/> <!-- Adjust size as needed -->
-         </Style>
+              <Setter Property="FontSize" Value="14"/> <!-- Adjust size as needed -->
+          </Style>
 
-         <!-- Standard Boolean to Visibility Converter -->
-         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+          <!-- Style for Toolbar Icon Buttons -->
+          <Style TargetType="Button" x:Key="ToolBarIconButtonStyle">
+              <Setter Property="Background" Value="Transparent"/>
+              <Setter Property="BorderThickness" Value="0"/>
+              <Setter Property="Padding" Value="6,4"/> <!-- Keep padding consistent -->
+              <Setter Property="Margin" Value="0,0,5,0"/> <!-- Default right margin for spacing -->
+              <Setter Property="Cursor" Value="Hand"/>
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/> <!-- Changed Font -->
+              <Setter Property="FontSize" Value="14"/>
+              <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/> <!-- Show tooltip even if disabled -->
+              <Setter Property="Template">
+                  <Setter.Value>
+                      <ControlTemplate TargetType="Button">
+                          <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="3">
+                              <!-- Ensure ContentPresenter uses the Button's FontFamily -->
+                              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                TextBlock.FontFamily="{TemplateBinding FontFamily}"
+                                                TextBlock.FontSize="{TemplateBinding FontSize}"/>
+                          </Border>
+                          <ControlTemplate.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#E0E0E0"/> <!-- Light gray hover -->
+                              </Trigger>
+                              <Trigger Property="IsPressed" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#D0D0D0"/> <!-- Darker pressed -->
+                              </Trigger>
+                              <Trigger Property="IsEnabled" Value="False">
+                                  <Setter Property="Opacity" Value="0.5"/> <!-- More dimmed when disabled -->
+                              </Trigger>
+                          </ControlTemplate.Triggers>
+                      </ControlTemplate>
+                  </Setter.Value>
+              </Setter>
+          </Style>
+
+          <!-- Global Button Style (macOS inspired - basic) - Keep for potential non-toolbar buttons -->
+          <Style TargetType="Button">
+              <Setter Property="Background" Value="#F0F0F0"/> <!-- Light gray background -->
+              <Setter Property="Foreground" Value="#333333"/> <!-- Dark gray text -->
+              <Setter Property="BorderThickness" Value="1"/>
+              <Setter Property="BorderBrush" Value="#CCCCCC"/> <!-- Light gray border -->
+              <Setter Property="Padding" Value="8,4"/> <!-- Adjust padding -->
+              <Setter Property="Margin" Value="3"/> <!-- Add some margin -->
+              <Setter Property="Cursor" Value="Hand"/>
+              <Setter Property="Template">
+                  <Setter.Value>
+                      <ControlTemplate TargetType="Button">
+                          <Border x:Name="border"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="4"> <!-- Rounded corners -->
+                              <ContentPresenter HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Margin="{TemplateBinding Padding}"/>
+                          </Border>
+                          <ControlTemplate.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#E0E0E0"/> <!-- Slightly darker on hover -->
+                              </Trigger>
+                              <Trigger Property="IsPressed" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#D0D0D0"/> <!-- Darker when pressed -->
+                              </Trigger>
+                              <Trigger Property="IsEnabled" Value="False">
+                                  <Setter Property="Opacity" Value="0.6"/> <!-- Dim when disabled -->
+                              </Trigger>
+                          </ControlTemplate.Triggers>
+                      </ControlTemplate>
+                  </Setter.Value>
+              </Setter>
+          </Style>
+
+          <!-- Style for ToggleButton to match Button -->
+          <Style TargetType="ToggleButton">
+              <Setter Property="Background" Value="#F0F0F0"/>
+              <Setter Property="Foreground" Value="#333333"/>
+              <Setter Property="BorderThickness" Value="1"/>
+              <Setter Property="BorderBrush" Value="#CCCCCC"/>
+              <Setter Property="Padding" Value="8,4"/>
+              <Setter Property="Margin" Value="3"/>
+              <Setter Property="Cursor" Value="Hand"/>
+              <Setter Property="Template">
+                  <Setter.Value>
+                      <ControlTemplate TargetType="ToggleButton">
+                          <Border x:Name="border"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="4">
+                              <ContentPresenter HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Margin="{TemplateBinding Padding}"/>
+                          </Border>
+                          <ControlTemplate.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#E0E0E0"/>
+                              </Trigger>
+                              <Trigger Property="IsChecked" Value="True">
+                                  <Setter TargetName="border" Property="Background" Value="#C0D8FF"/> <!-- Light blue when checked -->
+                                  <Setter TargetName="border" Property="BorderBrush" Value="#A0C8FF"/>
+                              </Trigger>
+                              <Trigger Property="IsEnabled" Value="False">
+                                  <Setter Property="Opacity" Value="0.6"/>
+                              </Trigger>
+                          </ControlTemplate.Triggers>
+                      </ControlTemplate>
+                  </Setter.Value>
+              </Setter>
+          </Style>
+
+           <!-- Style for ProgressBar -->
+           <Style TargetType="ProgressBar">
+               <Setter Property="Height" Value="10"/> <!-- Make it slimmer -->
+               <Setter Property="BorderThickness" Value="1"/>
+               <Setter Property="BorderBrush" Value="#CCCCCC"/>
+               <Setter Property="Background" Value="#E8E8E8"/> <!-- Lighter background -->
+               <Setter Property="Foreground" Value="#007AFF"/> <!-- Blue progress color -->
+               <Setter Property="Template">
+                   <Setter.Value>
+                       <ControlTemplate TargetType="ProgressBar">
+                           <Border x:Name="PART_Track" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                               <Rectangle x:Name="PART_Indicator" HorizontalAlignment="Left" Fill="{TemplateBinding Foreground}" RadiusX="4" RadiusY="4"/>
+                           </Border>
+                       </ControlTemplate>
+                   </Setter.Value>
+               </Setter>
+           </Style>
+
+           <!-- Style for Expander -->
+           <Style TargetType="Expander">
+               <Setter Property="BorderThickness" Value="1"/>
+               <Setter Property="BorderBrush" Value="#E0E0E0"/>
+               <Setter Property="Background" Value="#FAFAFA"/> <!-- Very light background -->
+               <Setter Property="Padding" Value="5"/>
+               <Setter Property="Template">
+                   <Setter.Value>
+                       <ControlTemplate TargetType="Expander">
+                           <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                   BorderThickness="{TemplateBinding BorderThickness}"
+                                   Background="{TemplateBinding Background}"
+                                   CornerRadius="4">
+                               <DockPanel>
+                                   <ToggleButton x:Name="HeaderSite"
+                                                 DockPanel.Dock="Top"
+                                                 Content="{TemplateBinding Header}"
+                                                 IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                 Style="{StaticResource ExpanderHeaderToggleButton}"/>
+                                   <ContentPresenter x:Name="ExpandSite"
+                                                     DockPanel.Dock="Bottom"
+                                                     Visibility="Collapsed"
+                                                     Margin="{TemplateBinding Padding}"/>
+                               </DockPanel>
+                           </Border>
+                           <ControlTemplate.Triggers>
+                               <Trigger Property="IsExpanded" Value="True">
+                                   <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                               </Trigger>
+                               <Trigger Property="IsEnabled" Value="False">
+                                   <Setter Property="Opacity" Value="0.6"/>
+                               </Trigger>
+                           </ControlTemplate.Triggers>
+                       </ControlTemplate>
+                   </Setter.Value>
+               </Setter>
+           </Style>
+
+           <!-- Style for Expander Header ToggleButton -->
+           <Style x:Key="ExpanderHeaderToggleButton" TargetType="ToggleButton">
+               <Setter Property="Template">
+                   <Setter.Value>
+                       <ControlTemplate TargetType="ToggleButton">
+                           <Border Padding="5">
+                               <Grid Background="Transparent">
+                                   <Grid.ColumnDefinitions>
+                                       <ColumnDefinition Width="Auto"/>
+                                       <ColumnDefinition Width="*"/>
+                                   </Grid.ColumnDefinitions>
+                                   <Path x:Name="Arrow" Grid.Column="0" Fill="#666666" StrokeThickness="0" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                   <ContentPresenter Grid.Column="1" Margin="4,0,0,0" RecognizesAccessKey="True" ContentSource="Content"/>
+                               </Grid>
+                           </Border>
+                       </ControlTemplate>
+                   </Setter.Value>
+               </Setter>
+               <!-- Removed problematic Style.Triggers block to fix MC4011 -->
+           </Style>
+
+        <!-- Status Icon DataTemplates -->
+        <DataTemplate x:Key="StatusPendingTemplate">
+            <TextBlock Text="&#xE916;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#888888" ToolTip="待处理" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!-- Changed to Clock icon -->
+        </DataTemplate>
+        <DataTemplate x:Key="StatusProcessingTemplate">
+            <!-- TODO: Consider adding animation later -->
+            <TextBlock Text="&#xE895;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#007AFF" ToolTip="转换中..." VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </DataTemplate>
+        <DataTemplate x:Key="StatusSuccessTemplate">
+            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#34C759" ToolTip="成功" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!-- Green Check -->
+        </DataTemplate>
+        <DataTemplate x:Key="StatusFailedTemplate">
+            <TextBlock Text="&#xE783;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#FF3B30" ToolTip="{Binding ErrorMessage, FallbackValue='失败/错误'}" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!-- Red Error with specific message tooltip -->
+        </DataTemplate>
+         <DataTemplate x:Key="StatusRetryTemplate">
+            <TextBlock Text="&#xE7A6;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#FF9500" ToolTip="{Binding ErrorMessage, FallbackValue='待重试'}" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!-- Orange Retry with potential message -->
+        </DataTemplate>
+         <DataTemplate x:Key="StatusDefaultTemplate">
+             <TextBlock Text="" ToolTip="{Binding Status}" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!-- Fallback for unknown status -->
+         </DataTemplate>
+
+          <!-- Standard Boolean to Visibility Converter -->
+          <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
          <!-- Inverse Boolean to Visibility Converter -->
          <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+
+         <!-- Short Path Converter for displaying paths concisely -->
+         <converters:ShortPathConverter x:Key="ShortPathConverter"/>
     </Application.Resources>
 </Application>

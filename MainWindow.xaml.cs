@@ -69,9 +69,21 @@ namespace MhtToPdfConverter
                      if (!viewModel.FileList.Any(f => f.SourcePath.Equals(sourcePath, StringComparison.OrdinalIgnoreCase)))
                      {
                          viewModel.FileList.Add(new Models.FileItem(sourcePath)); // Pass sourcePath to constructor
-                     }
-                }
+                     } // Added missing closing brace
+                 }
+            }
+        }
+
+        // Event handler for Double Click on a DataGrid Row
+        private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && row.DataContext is Models.FileItem fileItem)
+            {
+                if (DataContext is MainViewModel viewModel && viewModel.EditFileNameCommand.CanExecute(fileItem))
+                {
+                    viewModel.EditFileNameCommand.Execute(fileItem);
+                } // Added missing closing brace
             }
         }
     }
-}
+} // Removed extra closing brace

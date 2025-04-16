@@ -37,6 +37,13 @@ namespace MhtToPdfConverter.Models
             set => SetProperty(ref _isEditing, value);
         }
 
+        private string? _errorMessage; // Nullable string for error message
+        public string? ErrorMessage
+        {
+            get => _errorMessage;
+            set => SetProperty(ref _errorMessage, value);
+        }
+
 
         public FileItem(string sourcePath)
         {

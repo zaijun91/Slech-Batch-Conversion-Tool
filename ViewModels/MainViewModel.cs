@@ -12,6 +12,8 @@ using Microsoft.Win32; // For OpenFileDialog
 using System.IO; // For Path, Directory related operations
 using System.Windows; // For MessageBox
 using MhtToPdfConverter.Services; // Add this
+using Microsoft.WindowsAPICodePack.Dialogs; // Add this for CommonOpenFileDialog
+using System.Diagnostics; // For Process.Start
 
 namespace MhtToPdfConverter.ViewModels
 {
@@ -49,11 +51,11 @@ namespace MhtToPdfConverter.ViewModels
             }
         }
 
-        private string _outputPath = string.Empty;
-        public string OutputPath
+        private string _outputDirectory = string.Empty; // Renamed from OutputPath
+        public string OutputDirectory // Renamed from OutputPath
         {
-            get => _outputPath;
-            set => SetProperty(ref _outputPath, value);
+            get => _outputDirectory;
+            set => SetProperty(ref _outputDirectory, value);
         }
 
         private int _progress;
@@ -105,15 +107,21 @@ namespace MhtToPdfConverter.ViewModels
             // Initialize properties and commands
             // FileList and ErrorList are initialized inline
 
-            // Set default output path (e.g., Desktop)
+            // Set default output directory (e.g., Desktop)
             try
             {
-                 OutputPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "MHT_PDF_Output");
+                 // Ensure the default directory exists or create it
+                 string defaultDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "MHT_PDF_Output");
+                 if (!Directory.Exists(defaultDir))
+                 {
+                     Directory.CreateDirectory(defaultDir);
+                 }
+                 OutputDirectory = defaultDir; // Use renamed property
             }
-            catch (Exception ex) // Handle potential errors getting Desktop path
+            catch (Exception ex) // Handle potential errors getting/creating Desktop path
             {
-                 OutputPath = System.IO.Path.GetTempPath(); // Fallback to temp path
-                 System.Diagnostics.Debug.WriteLine($"Error getting Desktop path: {ex.Message}");
+                 OutputDirectory = System.IO.Path.GetTempPath(); // Fallback to temp path
+                 System.Diagnostics.Debug.WriteLine($"Error getting/creating default output directory: {ex.Message}");
             }
 
             Overwrite = false; // Default to not overwrite
@@ -122,12 +130,14 @@ namespace MhtToPdfConverter.ViewModels
             // Initialize Commands
             AddFilesCommand = new RelayCommand(AddFiles);
             AddFolderCommand = new RelayCommand(AddFolder);
-            SelectOutputCommand = new RelayCommand(SelectOutput);
+            SelectOutputDirectoryCommand = new RelayCommand(SelectOutputDirectory); // Renamed command
             ConvertCommand = new RelayCommand(Convert, CanConvert); // Add CanExecute logic
             ClearListCommand = new RelayCommand(ClearList, CanClearList); // Add CanExecute logic
             RetryCommand = new RelayCommand(RetryFile);
             EditFileNameCommand = new RelayCommand(EditFileName); // Initialize Edit command
             SaveFileNameCommand = new RelayCommand(SaveFileName); // Initialize Save command
+            OpenContainingFolderCommand = new RelayCommand(OpenContainingFolder); // Initialize context menu command
+            RemoveItemCommand = new RelayCommand(RemoveItem); // Initialize context menu command
         }
 
 
@@ -140,12 +150,14 @@ namespace MhtToPdfConverter.ViewModels
         // --- Commands ---
         public ICommand AddFilesCommand { get; }
         public ICommand AddFolderCommand { get; }
-        public ICommand SelectOutputCommand { get; }
+        public ICommand SelectOutputDirectoryCommand { get; } // Renamed command
         public ICommand ConvertCommand { get; }
         public ICommand ClearListCommand { get; }
         public ICommand RetryCommand { get; }
         public ICommand EditFileNameCommand { get; private set; } // Added
         public ICommand SaveFileNameCommand { get; private set; } // Added
+        public ICommand OpenContainingFolderCommand { get; private set; } // Added for context menu
+        public ICommand RemoveItemCommand { get; private set; } // Added for context menu
 
 
         // --- Command Methods (Implementations) ---
@@ -178,12 +190,44 @@ namespace MhtToPdfConverter.ViewModels
              // but requires adding a NuGet package. Using basic OpenFileDialog for now as a workaround,
              // asking user to select a file within the target folder. A bit clunky.
              // Or we can try the WindowsAPICodePack-Shell package if available.
-             // Let's stick to a simpler approach first or ask user.
-             // For now, let's use a placeholder message.
-             MessageBox.Show("选择文件夹功能需要额外的库支持，暂未实现。请使用“添加文件”按钮。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+             // Use CommonOpenFileDialog from WindowsAPICodePack for folder selection
+             var dialog = new CommonOpenFileDialog
+             {
+                 IsFolderPicker = true, // Set to true to select folders
+                 Title = "选择包含 MHT/MHTML 文件的文件夹"
+             };
 
-             // TODO: Implement proper folder selection later (e.g., using Ookii.Dialogs.Wpf or WindowsAPICodePack-Shell)
-             /* Example using OpenFileDialog workaround:
+             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+             {
+                 string folderPath = dialog.FileName;
+                 if (!string.IsNullOrEmpty(folderPath) && Directory.Exists(folderPath))
+                 {
+                     try
+                     {
+                         var mhtFiles = Directory.EnumerateFiles(folderPath, "*.mht", SearchOption.TopDirectoryOnly)
+                                                 .Concat(Directory.EnumerateFiles(folderPath, "*.mhtml", SearchOption.TopDirectoryOnly));
+
+                         int addedCount = 0;
+                         foreach (var sourcePath in mhtFiles) // Renamed variable
+                         {
+                             // Avoid adding duplicates using SourcePath
+                             if (!FileList.Any(f => f.SourcePath.Equals(sourcePath, StringComparison.OrdinalIgnoreCase)))
+                             {
+                                 FileList.Add(new FileItem(sourcePath)); // Pass sourcePath to constructor
+                                 addedCount++;
+                             }
+                         }
+                         CurrentStatus = $"从文件夹添加了 {addedCount} 个文件。";
+                     }
+                     catch (Exception ex)
+                     {
+                         MessageBox.Show($"无法读取文件夹 '{folderPath}' 中的文件: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                         // Optionally log the error
+                         System.Diagnostics.Debug.WriteLine($"Error reading folder {folderPath}: {ex}");
+                     }
+                 }
+             }
+             /* Old placeholder/workaround code removed:
              var dialog = new OpenFileDialog { ValidateNames = false, CheckFileExists = false, CheckPathExists = true, FileName = "选择文件夹" };
              if (dialog.ShowDialog() == true)
              {
@@ -204,36 +248,28 @@ namespace MhtToPdfConverter.ViewModels
              */
         }
 
-        private void SelectOutput(object? parameter)
+        // Renamed from SelectOutput
+        private void SelectOutputDirectory(object? parameter)
         {
-            // Similar issue as AddFolder. Using OpenFileDialog workaround.
-            var dialog = new OpenFileDialog
-            {
-                ValidateNames = false,
-                CheckFileExists = false,
-                CheckPathExists = true,
-                FileName = "选择输出文件夹" // Will show in the file name box
-            };
+             // Use CommonOpenFileDialog for a better folder selection experience
+             var dialog = new CommonOpenFileDialog
+             {
+                 IsFolderPicker = true,
+                 Title = "选择 PDF 输出文件夹",
+                 InitialDirectory = Directory.Exists(OutputDirectory) ? OutputDirectory : Environment.GetFolderPath(Environment.SpecialFolder.Desktop) // Start in current or Desktop
+             };
 
-            if (dialog.ShowDialog() == true)
-            {
-                string? selectedPath = Path.GetDirectoryName(dialog.FileName);
-                if (!string.IsNullOrEmpty(selectedPath) && Directory.Exists(selectedPath))
-                {
-                    OutputPath = selectedPath;
-                }
-                else
-                {
-                     // If user selected a drive root or something invalid, fallback or keep old path
-                     MessageBox.Show("选择的路径无效，请选择一个有效的文件夹。", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-            }
+             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+             {
+                 OutputDirectory = dialog.FileName; // Update the renamed property
+                 CurrentStatus = $"输出文件夹已设置为: {OutputDirectory}";
+             }
         }
 
         private bool CanConvert(object? parameter)
         {
-            // Only allow conversion if not already converting, files exist, and output path is set
-            return !IsConverting && FileList.Any() && !string.IsNullOrWhiteSpace(OutputPath);
+            // Only allow conversion if not already converting, files exist, and output directory is set
+            return !IsConverting && FileList.Any() && !string.IsNullOrWhiteSpace(OutputDirectory); // Use renamed property
         }
 
         private async void Convert(object? parameter)
@@ -242,10 +278,19 @@ namespace MhtToPdfConverter.ViewModels
 
             IsConverting = true; // Disable buttons
 
-            // Basic validation
-            if (!Directory.Exists(OutputPath))
+            // Basic validation - Ensure output directory exists, create if not (should be handled by selection/default)
+            try
             {
-                 MessageBox.Show($"输出路径不存在: {OutputPath}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (!Directory.Exists(OutputDirectory)) // Use renamed property
+                {
+                    Directory.CreateDirectory(OutputDirectory); // Attempt to create it
+                    CurrentStatus = $"已创建输出文件夹: {OutputDirectory}";
+                }
+            }
+            catch (Exception ex)
+            {
+                 MessageBox.Show($"无法访问或创建输出文件夹 '{OutputDirectory}': {ex.Message}", "输出文件夹错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                 IsConverting = false; // Re-enable buttons on error
                  return;
             }
 
@@ -278,12 +323,13 @@ namespace MhtToPdfConverter.ViewModels
                          await Application.Current.Dispatcher.InvokeAsync(() =>
                          {
                              fileItem.Status = "错误";
-                             ErrorList.Add(new FileError(fileItem.SourcePath, $"输出文件名 '{fileItem.OutputFileName}' 包含非法字符。"));
+                             fileItem.ErrorMessage = $"输出文件名 '{fileItem.OutputFileName}' 包含非法字符。"; // Store error message
+                             ErrorList.Add(new FileError(fileItem.SourcePath, fileItem.ErrorMessage)); // Use stored message
                          });
                          continue; // Skip this file
                     }
 
-                    string pdfOutputPath = Path.Combine(OutputPath, finalOutputFileName);
+                    string pdfOutputPath = Path.Combine(OutputDirectory, finalOutputFileName); // Use renamed property
 
 
                     try
@@ -292,6 +338,7 @@ namespace MhtToPdfConverter.ViewModels
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
                             fileItem.Status = "转换中...";
+                            fileItem.ErrorMessage = null; // Clear previous error on retry/start
                             CurrentStatus = $"正在转换: {Path.GetFileName(fileItem.SourcePath)}"; // Display original source file name
                         });
 
@@ -304,13 +351,14 @@ namespace MhtToPdfConverter.ViewModels
                             if (success)
                             {
                                 fileItem.Status = "成功";
+                                fileItem.ErrorMessage = null; // Clear error on success
                                 successCount++;
                             }
                             else
                             {
                                 fileItem.Status = "失败";
-                                // Add error (assuming ConvertSingleFileAsync throws for specific errors, or returns false for general print failure)
-                                ErrorList.Add(new FileError(fileItem.SourcePath, "转换失败 (PrintToPdfAsync 返回 false)"));
+                                fileItem.ErrorMessage = "转换失败 (PrintToPdfAsync 返回 false)"; // Store error message
+                                ErrorList.Add(new FileError(fileItem.SourcePath, fileItem.ErrorMessage)); // Use stored message
                             }
                         });
                     }
@@ -320,7 +368,8 @@ namespace MhtToPdfConverter.ViewModels
                         await Application.Current.Dispatcher.InvokeAsync(() =>
                         {
                             fileItem.Status = "错误";
-                            ErrorList.Add(new FileError(fileItem.SourcePath, ex.Message)); // Use SourcePath for error reporting
+                            fileItem.ErrorMessage = ex.Message; // Store exception message
+                            ErrorList.Add(new FileError(fileItem.SourcePath, fileItem.ErrorMessage)); // Use stored message
                         });
                         // Log the full exception details
                         System.Diagnostics.Debug.WriteLine($"Error converting {fileItem.SourcePath}: {ex}"); // Use SourcePath for logging
@@ -338,9 +387,14 @@ namespace MhtToPdfConverter.ViewModels
             });
 
             // Final UI updates after loop finishes
-            CurrentStatus = $"转换完成 ({successCount} 成功, {ErrorList.Count} 失败)";
+            CurrentStatus = $"转换完成 ({successCount} 成功, {ErrorList.Count} 失败/错误)"; // Added "错误"
             IsConverting = false; // Re-enable buttons
-            MessageBox.Show($"转换完成！\n成功: {successCount}\n失败: {ErrorList.Count}", "完成", MessageBoxButton.OK, MessageBoxImage.Information);
+            string completionMessage = $"转换任务已完成。\n\n成功转换文件数: {successCount}\n转换失败/错误数: {ErrorList.Count}";
+            if (ErrorList.Any())
+            {
+                completionMessage += "\n\n请检查文件列表中的状态和错误提示。";
+            }
+            MessageBox.Show(completionMessage, "转换结果", MessageBoxButton.OK, MessageBoxImage.Information); // Improved message and title
         }
 
         private bool CanClearList(object? parameter)
@@ -442,6 +496,68 @@ namespace MhtToPdfConverter.ViewModels
 
             // Note: We don't add .pdf here; the Convert method handles that.
             // This keeps the editable part clean.
+        }
+
+        private void OpenContainingFolder(object? parameter)
+        {
+            if (parameter is FileItem item)
+            {
+                try
+                {
+                    string? directoryPath = Path.GetDirectoryName(item.SourcePath);
+                    if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
+                    {
+                        // Use Process.Start with UseShellExecute = true to open the folder
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = directoryPath,
+                            UseShellExecute = true,
+                            Verb = "open" // Explicitly use the "open" verb
+                        });
+                    }
+                    else
+                    {
+                        MessageBox.Show($"无法找到文件 '{item.SourceFileName}' 所在的文件夹。", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"打开文件夹时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Diagnostics.Debug.WriteLine($"Error opening containing folder for {item.SourcePath}: {ex}");
+                }
+            }
+            else
+            {
+                 MessageBox.Show("无法打开文件夹：未提供有效的文件项。", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void RemoveItem(object? parameter)
+        {
+            if (parameter is FileItem itemToRemove)
+            {
+                // Check if the item exists in the list before removing
+                if (FileList.Contains(itemToRemove))
+                {
+                    FileList.Remove(itemToRemove);
+                    CurrentStatus = $"已移除文件: {itemToRemove.SourceFileName}";
+                    // Optionally, remove from ErrorList if it exists there too
+                    var errorItem = ErrorList.FirstOrDefault(e => e.FilePath == itemToRemove.SourcePath);
+                    if (errorItem != null)
+                    {
+                        ErrorList.Remove(errorItem);
+                    }
+                }
+                else
+                {
+                     // This case should ideally not happen if the command parameter is bound correctly
+                     System.Diagnostics.Debug.WriteLine($"Attempted to remove an item not found in the list: {itemToRemove.SourcePath}");
+                }
+            }
+             else
+             {
+                 MessageBox.Show("无法移除文件：未提供有效的文件项。", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+             }
         }
     }
 }

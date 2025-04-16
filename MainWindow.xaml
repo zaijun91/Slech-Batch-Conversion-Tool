@@ -6,103 +6,231 @@
         xmlns:local="clr-namespace:MhtToPdfConverter"
         xmlns:converters="clr-namespace:MhtToPdfConverter.Converters"
         mc:Ignorable="d"
-        Title="MHT to PDF Converter" Height="600" Width="800">
-    <!-- Define Converters namespace above -->
-    <Grid Margin="10">
+        Title="MHT to PDF Converter" Height="600" Width="800"
+        FontFamily="Segoe UI" Background="#FAFAFA"> <!-- Set default font and softer background -->
+    <!-- Removed Window.Resources section to ensure App.xaml resources are used -->
+    <Grid Margin="0"> <!-- Main Grid Start -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Toolbar -->
-            <RowDefinition Height="*"/>    <!-- File List -->
-            <RowDefinition Height="Auto"/> <!-- Progress Bar & Status -->
-            <RowDefinition Height="Auto"/> <!-- Error List Expander -->
+            <RowDefinition Height="Auto"/> <!-- Toolbar Row -->
+            <RowDefinition Height="*"/>    <!-- Content Row (DataGrid) -->
+            <RowDefinition Height="Auto"/> <!-- Status Bar Row -->
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="添加文件" Command="{Binding AddFilesCommand}" Margin="0,0,5,0" Padding="5"/>
-            <Button Content="添加文件夹" Command="{Binding AddFolderCommand}" Margin="0,0,5,0" Padding="5"/> <!-- Added Add Folder -->
-            <Button Content="选择输出路径" Command="{Binding SelectOutputCommand}" Margin="0,0,5,0" Padding="5"/>
-            <ToggleButton Content="自动覆盖" IsChecked="{Binding Overwrite}" VerticalAlignment="Center" Margin="10,0,5,0"/>
-            <!-- Keep the buttons with IsEnabled binding -->
-            <Button Content="开始转换" Command="{Binding ConvertCommand}" FontWeight="Bold" Margin="20,0,0,0" Padding="10,5" IsEnabled="{Binding IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Corrected IsEnabled binding -->
-            <Button Content="清空列表" Command="{Binding ClearListCommand}" Margin="10,0,0,0" Padding="5" IsEnabled="{Binding IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Corrected IsEnabled binding -->
-        </StackPanel>
+        <!-- New Toolbar Area using Grid for alignment -->
+        <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#E0E0E0" Background="#F5F5F5" Padding="8,5"> <!-- Simple toolbar background/separator, adjusted padding -->
+            <Grid> <!-- Toolbar Inner Grid Start -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Left-aligned buttons -->
+                    <ColumnDefinition Width="*"/>    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/> <!-- Right-aligned buttons -->
+                </Grid.ColumnDefinitions>
 
-        <!-- File List DataGrid -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding FileList}" AutoGenerateColumns="False" Margin="0,0,0,10" Name="FileDataGrid"
-                  CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                  AllowDrop="True" Drop="FileDataGrid_Drop"
+                <!-- Left-aligned buttons -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <!-- Removed Diagnostic TextBlock -->
+                    <!-- Add File Button (Using Image) -->
+                    <Button Command="{Binding AddFilesCommand}" ToolTip="添加文件" Style="{StaticResource ToolBarIconButtonStyle}"> <!-- Restored Style -->
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/add_file.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="添加文件" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12" FontFamily="Segoe UI"/> <!-- Explicit Font -->
+                        </StackPanel>
+                    </Button>
+                    <!-- Add Folder Button (Using Image) -->
+                    <Button Command="{Binding AddFolderCommand}" ToolTip="添加文件夹" Style="{StaticResource ToolBarIconButtonStyle}">
+                         <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/add_folder.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="添加文件夹" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12" FontFamily="Segoe UI"/> <!-- Explicit Font -->
+                        </StackPanel>
+                    </Button>
+                    <!-- Select Output Button (Using Image) -->
+                    <Button Command="{Binding SelectOutputDirectoryCommand}" ToolTip="选择输出文件夹" Style="{StaticResource ToolBarIconButtonStyle}">
+                         <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/output_folder.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="输出目录" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12" FontFamily="Segoe UI"/> <!-- Explicit Font -->
+                        </StackPanel>
+                    </Button>
+                    <!-- Convert Button (Using Image) -->
+                    <Button Command="{Binding ConvertCommand}" ToolTip="开始转换" Style="{StaticResource ToolBarIconButtonStyle}" Margin="10,0,0,0">
+                         <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/convert.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="开始转换" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12" FontFamily="Segoe UI"/> <!-- Explicit Font -->
+                        </StackPanel>
+                    </Button>
+                    <!-- Clear List Button (Using Image) -->
+                    <Button Command="{Binding ClearListCommand}" ToolTip="清空列表" Style="{StaticResource ToolBarIconButtonStyle}" Margin="0">
+                         <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/clear_list.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="清空列表" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12" FontFamily="Segoe UI"/> <!-- Explicit Font -->
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Right-aligned buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                     <!-- Settings Button -->
+                     <Button ToolTip="设置 (暂未实现)" Style="{StaticResource ToolBarIconButtonStyle}" Margin="0" IsEnabled="False"> <!-- Disable settings for now -->
+                          <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/Icons/settings.png" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <!-- <TextBlock Text="设置" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="12"/> -->
+                        </StackPanel>
+                     </Button>
+                     <!-- Add other right-aligned buttons here if needed -->
+                </StackPanel>
+            </Grid> <!-- Toolbar Inner Grid End -->
+        </Border>
+
+        <!-- Content Area Grid (Contains DataGrid and Empty List Placeholder) -->
+        <Grid Grid.Row="1" Margin="10,10,10,0"> <!-- Content Area Grid Start -->
+
+            <!-- Empty List Placeholder Text -->
+            <TextBlock Text="将 MHT 文件拖拽至此 或 点击 '+' 添加文件"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#AAAAAA" FontSize="16">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/> <!-- Hidden by default -->
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding FileList.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Visible"/> <!-- Show when list is empty -->
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- File List DataGrid -->
+            <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" Name="FileDataGrid"
+                      CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None"
+                      BorderThickness="0"
+                      AllowDrop="True" Drop="FileDataGrid_Drop"
                   EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True"
-                  AlternatingRowBackground="#F0F0F0"> <!-- Added AlternatingRowBackground -->
-            <!-- Define Drop handler above -->
-            <!-- Enable Virtualization above -->
-            <!-- Resources moved to App.xaml -->
+                  RowBackground="White">
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid">
+                        <Setter Property="Visibility" Value="Visible"/> <!-- Visible by default -->
+                        <Setter Property="BorderBrush" Value="Transparent"/> <!-- Default transparent border -->
+                        <Setter Property="BorderThickness" Value="2"/> <!-- Reserve space for border -->
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding FileList.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/> <!-- Hide when list is empty -->
+                            </DataTrigger>
+                            <!-- Removed invalid IsDragOver trigger -->
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Style>
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#666666"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Padding" Value="10,8"/> <!-- Adjusted padding -->
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="MinHeight" Value="32"/> <!-- Adjusted row height -->
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="5,0"/>
+                    <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick"/>
+                    <!-- Moved Context Menu Setter before Triggers -->
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="移除此项" Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <MenuItem Header="打开文件所在文件夹" Command="{Binding DataContext.OpenContainingFolderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <!-- Add more items later if needed, e.g., Show Error -->
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#E0F0FF"/>
+                            <Setter Property="Foreground" Value="#222222"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                              <Setter Property="Background" Value="#F0F8FF"/>
+                         </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
-                <!-- Removed Source File Column -->
-
-                <!-- Output File Name (Editable Template) -->
-                <DataGridTemplateColumn Header="输出文件名 (不含扩展名)" Width="3*"> <!-- Increased width -->
+                <!-- Output File Name Column (Keep as is for now) -->
+                <DataGridTemplateColumn Header="输出文件名 (不含扩展名)" Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding SourcePath}"> <!-- Moved ToolTip here -->
-                                <!-- Display Mode -->
-                                <TextBlock Text="{Binding OutputFileName}"
-                                           VerticalAlignment="Center" Margin="4 0"
-                                           Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/> <!-- Uses global resource -->
-
-                                <!-- Edit Mode -->
-                                <TextBox Text="{Binding OutputFileName, UpdateSourceTrigger=PropertyChanged}"
-                                         VerticalAlignment="Center" MinWidth="150" Margin="4 0"
-                                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/> <!-- Uses global resource -->
-
-                                <!-- Edit Button -->
-                                <Button Content="✏️" ToolTip="修改名称"
-                                        Command="{Binding DataContext.EditFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource GridIconButtonStyle}"
-                                        Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
-
-                                <!-- Save Button -->
-                                <Button Content="💾" ToolTip="保存名称"
-                                        Command="{Binding DataContext.SaveFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource GridIconButtonStyle}"
-                                        Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding SourcePath}">
+                                <TextBlock Text="{Binding OutputFileName}" VerticalAlignment="Center" Margin="5 0" Padding="5 4" TextTrimming="CharacterEllipsis" Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                <TextBox Text="{Binding OutputFileName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" MinWidth="150" Margin="5 0" Padding="5 3" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <Button Content="✏️" ToolTip="修改名称" Command="{Binding DataContext.EditFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource GridIconButtonStyle}" Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                <Button Content="💾" ToolTip="保存名称" Command="{Binding DataContext.SaveFileNameCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource GridIconButtonStyle}" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-
-                 <!-- Status Column -->
-                 <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="1*" IsReadOnly="True"/>
-
+                 <!-- Status Column (Changed to Template Column with Icons) -->
+                 <DataGridTemplateColumn Header="状态" Width="Auto" MinWidth="60">
+                     <DataGridTemplateColumn.CellTemplate>
+                         <DataTemplate>
+                             <ContentPresenter x:Name="StatusPresenter" Content="{Binding}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                 <ContentPresenter.Style>
+                                     <Style TargetType="ContentPresenter">
+                                         <!-- Default Template -->
+                                         <Setter Property="ContentTemplate" Value="{StaticResource StatusDefaultTemplate}"/>
+                                         <Style.Triggers>
+                                             <!-- Triggers to select template based on Status string -->
+                                             <DataTrigger Binding="{Binding Status}" Value="待处理">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusPendingTemplate}"/>
+                                             </DataTrigger>
+                                             <DataTrigger Binding="{Binding Status}" Value="转换中...">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusProcessingTemplate}"/>
+                                             </DataTrigger>
+                                             <DataTrigger Binding="{Binding Status}" Value="成功">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusSuccessTemplate}"/>
+                                             </DataTrigger>
+                                             <DataTrigger Binding="{Binding Status}" Value="失败">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusFailedTemplate}"/>
+                                             </DataTrigger>
+                                              <DataTrigger Binding="{Binding Status}" Value="错误">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusFailedTemplate}"/>
+                                             </DataTrigger>
+                                             <DataTrigger Binding="{Binding Status}" Value="待重试">
+                                                 <Setter Property="ContentTemplate" Value="{StaticResource StatusRetryTemplate}"/>
+                                             </DataTrigger>
+                                         </Style.Triggers>
+                                     </Style>
+                                 </ContentPresenter.Style>
+                             </ContentPresenter>
+                         </DataTemplate>
+                     </DataGridTemplateColumn.CellTemplate>
+                 </DataGridTemplateColumn>
             </DataGrid.Columns>
-        </DataGrid>
+            </DataGrid> <!-- DataGrid End -->
+        </Grid> <!-- Content Area Grid End -->
 
-        <!-- Progress Bar & Status -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,10">
-            <ProgressBar Value="{Binding Progress}" Height="20" Margin="0,0,0,5"/>
-            <TextBlock Text="{Binding CurrentStatus}" TextTrimming="CharacterEllipsis"/> <!-- Changed from CurrentFile -->
-        </StackPanel>
+        <!-- New Status Bar Area -->
+        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Background="#F5F5F5" Padding="10,5">
+            <Grid> <!-- Status Bar Inner Grid Start -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Output Directory Label -->
+                    <ColumnDefinition Width="*"/>    <!-- Status Text -->
+                    <ColumnDefinition Width="Auto"/> <!-- Progress Bar -->
+                </Grid.ColumnDefinitions>
+                <!-- Display Output Directory -->
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="{Binding OutputDirectory}">
+                    <Run Text="输出至:" Foreground="#888888"/>
+                    <Run Text="{Binding OutputDirectory, Converter={StaticResource ShortPathConverter}}" Foreground="#555555"/> <!-- Display shortened path -->
+                </TextBlock>
+                <!-- Status Text -->
+                <TextBlock Grid.Column="1" Text="{Binding CurrentStatus}" Foreground="#555555" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0"/>
+                <!-- Add ProgressBar, bind Value and Visibility (show only when converting) -->
+                <ProgressBar Grid.Column="2" Value="{Binding Progress}" Maximum="100" Width="150" VerticalAlignment="Center"
+                             Visibility="{Binding IsConverting, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid> <!-- Status Bar Inner Grid End -->
+        </Border>
 
-        <!-- Error List Expander -->
-        <Expander Grid.Row="3" Header="{Binding ErrorListHeader, FallbackValue='错误列表 (0)'}" IsExpanded="False">
-            <DataGrid ItemsSource="{Binding ErrorList}" AutoGenerateColumns="False" MaxHeight="150" CanUserAddRows="False" IsReadOnly="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="文件" Binding="{Binding FilePath}" Width="*" SortDirection="Ascending"/>
-                    <DataGridTextColumn Header="错误原因" Binding="{Binding ErrorMessage}" Width="2*"/>
-                    <DataGridTemplateColumn Header="操作" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="重试"
-                                        Command="{Binding DataContext.RetryCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}" Padding="3" Margin="2"
-                                        IsEnabled="{Binding DataContext.IsConverting, Converter={StaticResource InverseBoolToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Expander>
-
-    </Grid>
+    </Grid> <!-- Main Grid End -->
 </Window>

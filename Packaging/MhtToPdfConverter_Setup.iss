@@ -15,6 +15,8 @@ DefaultDirName={autopf}\MhtToPdfConverter
 DefaultGroupName=MHT to PDF Converter
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
+; --- Set the output directory for the setup file ---
+OutputDir=E:\mht转pdf\MhtToPdfConverter\docs\out
 OutputBaseFilename=MhtToPdfConverter_Setup
 Compression=lzma2
 SolidCompression=yes
@@ -40,6 +42,9 @@ Source: "..\bin\Release\net8.0-windows\win-x64\publish\*"; DestDir: "{app}"; Fla
 
 ; --- WebView2 Runtime Installer ---
 Source: "Resources\WebView2Runtime.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
+; --- Icon Files ---
+Source: "..\Resources\Icons\*"; DestDir: "{app}\Resources\Icons"; Flags: recursesubdirs createallsubdirs
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
