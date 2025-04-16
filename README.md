@@ -17,7 +17,7 @@
 
 我们为普通用户提供了方便的 **安装包**，无需关心复杂的配置和技术细节，下载安装即可使用！
 
-1.  **下载**: 前往本仓库的 [**Releases**](https://github.com/zaijun91/Slech-Batch-Conversion-Tool/releases) 页面 (请注意，您可能需要先手动创建第一个 Release 并上传安装包)。找到最新版本的 `MhtToPdfConverter_Setup.exe` 文件并下载。
+1.  **下载**: 点击这里下载最新版本的安装包 👉 [**下载最新版 (MhtToPdfConverter_Setup.exe)**](https://github.com/zaijun91/Slech-Batch-Conversion-Tool/releases/latest)。 在打开的页面中，找到 "Assets" 部分，点击 `MhtToPdfConverter_Setup.exe` 进行下载。
 2.  **安装**: 双击运行下载的 `MhtToPdfConverter_Setup.exe` 文件，按照提示完成安装。安装程序会自动检查并提示安装所需的 WebView2 运行时（如果您的系统缺少的话）。
 3.  **运行**: 安装完成后，可以从开始菜单或桌面快捷方式（如果创建了）启动 "MHT to PDF Converter"。
 4.  **使用**:
